@@ -368,4 +368,52 @@ $('#sample-button').addEventListener('click', () => {
   $('#result-section').hidden = true; render();
 });
 
+// 순수 운(1/N 확률) 기반 1:1 무작위 배정 함수
+function findPureRandomMatching() {
+  const used = new Set();
+  const assignment = {};
+
+  // 1. 팀원 순서를 순전히 운(100% 무작위)으로 섞기
+  const orderedMembers = shuffled(state.members);
+
+  function available(member) {
+    return state.roles.filter((role) => state.edges[member]?.[role]);
+  }
+
+  function search(index) {
+    if (index === orderedMembers.length) {
+      return true; // 모두 무사히 역할을 배정받음
+    }
+
+    const member = orderedMembers[index];
+    const memberRoles = available(member);
+
+    // 2. 원하는 역할들도 순전히 운으로 섞은 뒤 우선순위(1~5순위) 순으로 정렬
+    // (우선순위가 같거나 겹치면 shuffled 결과에 의해 1/N 순수한 운으로 결정됨)
+    const rankedRoles = shuffled(memberRoles).sort((first, second) => {
+      const r1 = state.priorities[member]?.[first] || state.roles.length;
+      const r2 = state.priorities[member]?.[second] || state.roles.length;
+      return r1 - r2;
+    });
+
+    for (const role of rankedRoles) {
+      if (used.has(role)) continue;
+
+      used.add(role);
+      assignment[member] = role;
+
+      if (search(index + 1)) return true;
+
+      // 실패 시 백트래킹 (원상복구)
+      used.delete(role);
+      delete assignment[member];
+    }
+
+    return false;
+  }
+
+  const success = search(0);
+  return success ? assignment : null;
+}
+
 render();
