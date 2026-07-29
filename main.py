@@ -25,45 +25,53 @@ class MatchingResponse(BaseModel):
 
 
 def find_perfect_matching(payload: MatchingRequest) -> Dict[str, str] | None:
-    """Return the complete assignment with the best combined rank, if one exists."""
+    """점수(score) 합산 없이, 동점자 및 동일 순위 쏠림 발생 시 순수 무작위(1/N) 추첨으로 1:1 매칭을 생성합니다."""
     available = {
         member: [role for role in payload.roles if payload.edges.get(member, {}).get(role)]
         for member in payload.members
     }
-    # Preserve the fewest-options-first rule, while avoiding name-order bias on ties.
+    
+    # 1. 팀원 순서를 순전히 운(100% 무작위)으로 섞은 후, 선택지가 적은 팀원부터 탐색
     ordered_members = list(payload.members)
     shuffle(ordered_members)
     ordered_members.sort(key=lambda member: len(available[member]))
+
     used_roles: set[str] = set()
     assignment: Dict[str, str] = {}
-    best_assignment: Dict[str, str] | None = None
-    best_score = -1
 
-    def search(index: int, score: int) -> None:
-        nonlocal best_assignment, best_score
+    def search(index: int) -> bool:
         if index == len(ordered_members):
-            if score > best_score or (score == best_score and best_assignment is not None and random() < 0.5):
-                best_score = score
-                best_assignment = assignment.copy()
-            return
+            return True  # 모든 인원이 중복 없이 무사히 배정되면 즉시 성공 반환!
+
         member = ordered_members[index]
         ranked_roles = list(available[member])
+        
+        # 2. 역할 목록도 무작위로 섞은 뒤 우선순위(1~N순위) 정렬
+        # 지망 순위가 같거나 겹치면 shuffle 결과에 의해 순수한 운(1/N)으로 당첨자 결정
         shuffle(ranked_roles)
         ranked_roles.sort(
             key=lambda role: payload.priorities.get(member, {}).get(role, len(payload.roles))
         )
+
         for role in ranked_roles:
             if role in used_roles:
                 continue
+
             used_roles.add(role)
             assignment[member] = role
-            rank = min(payload.priorities.get(member, {}).get(role, len(payload.roles)), len(payload.roles))
-            search(index + 1, score + (len(payload.roles) + 1 - rank))
+
+            if search(index + 1):
+                return True
+
+            # 실패 시 백트래킹 (원상복구)
             used_roles.remove(role)
             del assignment[member]
 
-    search(0, 0)
-    return best_assignment
+        return False
+
+    if search(0):
+        return assignment
+    return None
 
 
 @app.get("/", include_in_schema=False)
