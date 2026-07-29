@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="이분 그래프 완전 매칭 기반 팀 역할 배정 도구">
+  <title>Matchwork | 팀 역할 매칭</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Gowun+Dodum&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">BIPARTITE GRAPH / PERFECT MATCHING</p>
+        <h1>Match<span>work</span></h1>
+        <p class="intro">누구에게 어떤 일이 어울릴까?<br>조건을 연결해, 빈틈 없는 역할 배정을 만듭니다.</p>
+      </div>
+      <div class="hero-note"><span>01</span><p>팀원과 역할을<br>1:1로 연결하는<br>역할 배정 앱</p></div>
+    </header>
+
+    <section class="workspace" aria-label="역할 매칭 도구">
+      <div class="section-heading">
+          <div><p class="step-label">SETUP</p><h2>팀과 역할을 입력하세요</h2></div>
+          <div class="action-group"><button id="save-button" class="text-button" type="button">현재 데이터 저장 <span>↓</span></button><button id="load-button" class="text-button" type="button">저장 데이터 불러오기 <span>↑</span></button><button id="sample-button" class="text-button" type="button">예시 불러오기 <span>↗</span></button></div>
+      </div>
+
+      <div class="lists">
+        <section class="entry-card members-card">
+          <div class="card-title"><span class="icon">A</span><div><p>LEFT NODES</p><h3>팀원</h3></div><b id="member-count">0</b></div>
+          <form id="member-form" class="add-form"><input id="member-input" maxlength="16" placeholder="이름 입력" aria-label="팀원 이름"><button type="submit" aria-label="팀원 추가">+</button></form>
+          <div id="member-list" class="tag-list" aria-live="polite"></div>
+        </section>
+        <section class="entry-card roles-card">
+          <div class="card-title"><span class="icon">B</span><div><p>RIGHT NODES</p><h3>역할</h3></div><b id="role-count">0</b></div>
+          <form id="role-form" class="add-form"><input id="role-input" maxlength="16" placeholder="역할 입력" aria-label="역할 이름"><button type="submit" aria-label="역할 추가">+</button></form>
+          <div id="role-list" class="tag-list" aria-live="polite"></div>
+        </section>
+      </div>
+
+      <section class="matrix-section">
+        <div class="section-heading compact"><div><p class="step-label">PRIORITIES</p><h2>역할 우선순위를 정하세요</h2></div><p id="priority-hint" class="hint">역할 수에 맞춰 우선순위 선택지가 자동으로 늘어납니다.</p></div>
+        <div id="matrix-empty" class="empty-state">팀원과 역할을 각각 추가하면 우선순위 표가 나타납니다.</div>
+        <div id="matrix-wrap" class="matrix-wrap" hidden></div>
+      </section>
+
+      <section class="graph-section" aria-labelledby="graph-title">
+        <div class="section-heading compact"><div><p class="step-label">BIPARTITE GRAPH</p><h2 id="graph-title">가능한 배정을 그래프로 확인하세요</h2></div><p class="hint">화살표는 팀원에서 역할로 향하고, 색상은 우선순위를 뜻합니다.</p></div>
+        <div id="graph-empty" class="empty-state">팀원과 역할을 추가하면 방향 그래프가 나타납니다.</div>
+        <div id="graph-wrap" class="graph-wrap" hidden>
+          <svg id="matching-graph" class="matching-graph" role="img" aria-label="팀원에서 역할로 향하는 이분 그래프"></svg>
+          <div id="graph-legend" class="graph-legend"></div>
+        </div>
+      </section>
+
+      <section class="match-panel">
+        <div><p class="step-label light">FIND A MATCH</p><h2>완전 매칭을 찾아볼까요?</h2><p>백트래킹이 막힌 선택을 되돌리며 가능한 모든 조합을 탐색합니다.</p></div>
+        <button id="match-button" class="match-button" type="button">역할 배정하기 <span>→</span></button>
+      </section>
+
+      <section id="result-section" class="result-section" hidden aria-live="polite">
+        <div class="result-heading"><div><p class="step-label">RESULT</p><h2 id="result-title">매칭 결과</h2></div><button id="reset-button" class="text-button" type="button">처음으로 <span>↻</span></button></div>
+        <div id="result-message" class="result-message"></div>
+        <div id="result-list" class="result-list"></div>
+      </section>
+    </section>
+
+    <footer><span>MADE FOR BETTER COLLABORATION</span><span>TEAM ROLE MATCHING · 2026</span></footer>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
